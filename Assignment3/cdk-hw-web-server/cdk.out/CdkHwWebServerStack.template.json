@@ -1,0 +1,721 @@
+{
+ "Resources": {
+  "InstanceSSMCBFA3CF0": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ec2.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonSSMManagedInstanceCore"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/InstanceSSM/Resource"
+   }
+  },
+  "WebServerSG4D0F372C": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "CdkHwWebServerStack/WebServerSG",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow incoming HTTP traffic",
+      "FromPort": 80,
+      "IpProtocol": "tcp",
+      "ToPort": 80
+     }
+    ],
+    "VpcId": {
+     "Fn::ImportValue": "CdkHwNetworkStack:ExportsOutputRefMyVPCAFB07A31B0E4F4A0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/WebServerSG/Resource"
+   }
+  },
+  "RDSSGDCA0486D": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "CdkHwWebServerStack/RDSSG",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": {
+     "Fn::ImportValue": "CdkHwNetworkStack:ExportsOutputRefMyVPCAFB07A31B0E4F4A0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/RDSSG/Resource"
+   }
+  },
+  "RDSSGfromCdkHwWebServerStackWebServerSG7A6E935E330631499D4C": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Allow incoming MySQL traffic from Web Servers",
+    "FromPort": 3306,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "RDSSGDCA0486D",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "WebServerSG4D0F372C",
+      "GroupId"
+     ]
+    },
+    "ToPort": 3306
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/RDSSG/from CdkHwWebServerStackWebServerSG7A6E935E:3306"
+   }
+  },
+  "WebServer0InstanceProfile361E35BD": {
+   "Type": "AWS::IAM::InstanceProfile",
+   "Properties": {
+    "Roles": [
+     {
+      "Ref": "InstanceSSMCBFA3CF0"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/WebServer-0/InstanceProfile"
+   }
+  },
+  "WebServer06483BF9F": {
+   "Type": "AWS::EC2::Instance",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "IamInstanceProfile": {
+     "Ref": "WebServer0InstanceProfile361E35BD"
+    },
+    "ImageId": {
+     "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter"
+    },
+    "InstanceType": "t2.micro",
+    "SecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "WebServerSG4D0F372C",
+       "GroupId"
+      ]
+     }
+    ],
+    "SubnetId": {
+     "Fn::ImportValue": "CdkHwNetworkStack:ExportsOutputRefMyVPCPublicSubnet1Subnet1SubnetF74BEED802B83F48"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CdkHwWebServerStack/WebServer-0"
+     }
+    ],
+    "UserData": {
+     "Fn::Base64": "#!/bin/bash"
+    }
+   },
+   "DependsOn": [
+    "InstanceSSMCBFA3CF0"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/WebServer-0/Resource"
+   }
+  },
+  "WebServer1InstanceProfile465D94A3": {
+   "Type": "AWS::IAM::InstanceProfile",
+   "Properties": {
+    "Roles": [
+     {
+      "Ref": "InstanceSSMCBFA3CF0"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/WebServer-1/InstanceProfile"
+   }
+  },
+  "WebServer1CBBE9785": {
+   "Type": "AWS::EC2::Instance",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "IamInstanceProfile": {
+     "Ref": "WebServer1InstanceProfile465D94A3"
+    },
+    "ImageId": {
+     "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter"
+    },
+    "InstanceType": "t2.micro",
+    "SecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "WebServerSG4D0F372C",
+       "GroupId"
+      ]
+     }
+    ],
+    "SubnetId": {
+     "Fn::ImportValue": "CdkHwNetworkStack:ExportsOutputRefMyVPCPublicSubnet1Subnet1SubnetF74BEED802B83F48"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CdkHwWebServerStack/WebServer-1"
+     }
+    ],
+    "UserData": {
+     "Fn::Base64": "#!/bin/bash"
+    }
+   },
+   "DependsOn": [
+    "InstanceSSMCBFA3CF0"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/WebServer-1/Resource"
+   }
+  },
+  "WebServer2InstanceProfileC35F6999": {
+   "Type": "AWS::IAM::InstanceProfile",
+   "Properties": {
+    "Roles": [
+     {
+      "Ref": "InstanceSSMCBFA3CF0"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/WebServer-2/InstanceProfile"
+   }
+  },
+  "WebServer219959C4E": {
+   "Type": "AWS::EC2::Instance",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "IamInstanceProfile": {
+     "Ref": "WebServer2InstanceProfileC35F6999"
+    },
+    "ImageId": {
+     "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter"
+    },
+    "InstanceType": "t2.micro",
+    "SecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "WebServerSG4D0F372C",
+       "GroupId"
+      ]
+     }
+    ],
+    "SubnetId": {
+     "Fn::ImportValue": "CdkHwNetworkStack:ExportsOutputRefMyVPCPublicSubnet1Subnet1SubnetF74BEED802B83F48"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CdkHwWebServerStack/WebServer-2"
+     }
+    ],
+    "UserData": {
+     "Fn::Base64": "#!/bin/bash"
+    }
+   },
+   "DependsOn": [
+    "InstanceSSMCBFA3CF0"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/WebServer-2/Resource"
+   }
+  },
+  "WebServer3InstanceProfileCE23EAE0": {
+   "Type": "AWS::IAM::InstanceProfile",
+   "Properties": {
+    "Roles": [
+     {
+      "Ref": "InstanceSSMCBFA3CF0"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/WebServer-3/InstanceProfile"
+   }
+  },
+  "WebServer34682C61D": {
+   "Type": "AWS::EC2::Instance",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "IamInstanceProfile": {
+     "Ref": "WebServer3InstanceProfileCE23EAE0"
+    },
+    "ImageId": {
+     "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter"
+    },
+    "InstanceType": "t2.micro",
+    "SecurityGroupIds": [
+     {
+      "Fn::GetAtt": [
+       "WebServerSG4D0F372C",
+       "GroupId"
+      ]
+     }
+    ],
+    "SubnetId": {
+     "Fn::ImportValue": "CdkHwNetworkStack:ExportsOutputRefMyVPCPublicSubnet1Subnet1SubnetF74BEED802B83F48"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CdkHwWebServerStack/WebServer-3"
+     }
+    ],
+    "UserData": {
+     "Fn::Base64": "#!/bin/bash"
+    }
+   },
+   "DependsOn": [
+    "InstanceSSMCBFA3CF0"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/WebServer-3/Resource"
+   }
+  },
+  "MyRDSInstanceSubnetGroup5EA5E186": {
+   "Type": "AWS::RDS::DBSubnetGroup",
+   "Properties": {
+    "DBSubnetGroupDescription": "Subnet group for MyRDSInstance database",
+    "SubnetIds": [
+     {
+      "Fn::ImportValue": "CdkHwNetworkStack:ExportsOutputRefMyVPCPrivateSubnet1Subnet1Subnet3B62A83E7E1C8F5A"
+     },
+     {
+      "Fn::ImportValue": "CdkHwNetworkStack:ExportsOutputRefMyVPCPrivateSubnet1Subnet2SubnetF1B58133BE472119"
+     },
+     {
+      "Fn::ImportValue": "CdkHwNetworkStack:ExportsOutputRefMyVPCPrivateSubnet2Subnet1Subnet5B17E8C4934DCF70"
+     },
+     {
+      "Fn::ImportValue": "CdkHwNetworkStack:ExportsOutputRefMyVPCPrivateSubnet2Subnet2Subnet4E0331EDB8A6A067"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/MyRDSInstance/SubnetGroup/Default"
+   }
+  },
+  "CdkHwWebServerStackMyRDSInstanceSecret998B82953fdaad7efa858a3daf9490cf0a702aeb": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Generated by the CDK for stack: ",
+       {
+        "Ref": "AWS::StackName"
+       }
+      ]
+     ]
+    },
+    "GenerateSecretString": {
+     "ExcludeCharacters": " %+~`#$&*()|[]{}:;<>?!'/@\"\\",
+     "GenerateStringKey": "password",
+     "PasswordLength": 30,
+     "SecretStringTemplate": "{\"username\":\"Admin\"}"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/MyRDSInstance/Secret/Resource"
+   }
+  },
+  "MyRDSInstanceSecretAttachment4BDADC47": {
+   "Type": "AWS::SecretsManager::SecretTargetAttachment",
+   "Properties": {
+    "SecretId": {
+     "Ref": "CdkHwWebServerStackMyRDSInstanceSecret998B82953fdaad7efa858a3daf9490cf0a702aeb"
+    },
+    "TargetId": {
+     "Ref": "MyRDSInstance48FD439C"
+    },
+    "TargetType": "AWS::RDS::DBInstance"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/MyRDSInstance/Secret/Attachment/Resource"
+   }
+  },
+  "MyRDSInstance48FD439C": {
+   "Type": "AWS::RDS::DBInstance",
+   "Properties": {
+    "AllocatedStorage": "100",
+    "CopyTagsToSnapshot": true,
+    "DBInstanceClass": "db.t2.micro",
+    "DBSubnetGroupName": {
+     "Ref": "MyRDSInstanceSubnetGroup5EA5E186"
+    },
+    "Engine": "mysql",
+    "EngineVersion": "8.0.35",
+    "MasterUserPassword": {
+     "Fn::Join": [
+      "",
+      [
+       "{{resolve:secretsmanager:",
+       {
+        "Ref": "CdkHwWebServerStackMyRDSInstanceSecret998B82953fdaad7efa858a3daf9490cf0a702aeb"
+       },
+       ":SecretString:password::}}"
+      ]
+     ]
+    },
+    "MasterUsername": "Admin",
+    "Port": "3306",
+    "PubliclyAccessible": false,
+    "StorageType": "gp2",
+    "VPCSecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "RDSSGDCA0486D",
+       "GroupId"
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/MyRDSInstance/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/32OzWrDQAyEnyX39TY/UOixTaDkVGP3XuS14mxja4OkJYTF714cY9f00NOgmU/DbO1mt7brFdwkc/Ula31lU6ngLgZu8pU8dDYVoUWzP9GkRxIFcphzOPkWe4Nua1OJLrLX+zuHeB2w/40jNYwiZipbFveGa7HpAAoVCM5IGStCnfsOb0tjokt0jDrmv4XycKUDggbZpnHOAI7yCdygvqqCO3dIambgb9L3pkAJkcfNOTB0qMjD8RH1Gh+/S2QfqPbqA/Umv+s50NPOvtjN8+pbvM84kvoObTHqD0jNFB6SAQAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CdkHwWebServerStack/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Parameters": {
+  "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter": {
+   "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+   "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+  },
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Outputs": {
+  "RDSEndpoint": {
+   "Description": "RDS Endpoint",
+   "Value": {
+    "Fn::GetAtt": [
+     "MyRDSInstance48FD439C",
+     "Endpoint.Address"
+    ]
+   }
+  }
+ },
+ "Conditions": {
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "il-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-2"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}
